@@ -33,15 +33,9 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true
         },
         subImages: {
-            type: DataTypes.TEXT,
+            type: DataTypes.JSON,  // ✅ Change from TEXT to JSON
             allowNull: true,
-            get() {
-                const raw = this.getDataValue('subImages');
-                return raw ? JSON.parse(raw) : [];
-            },
-            set(value) {
-                this.setDataValue('subImages', JSON.stringify(value || []));
-            }
+            defaultValue: []
         }
     }, {
         sequelize,
