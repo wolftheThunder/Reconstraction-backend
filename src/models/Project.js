@@ -3,7 +3,6 @@ const { Model } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
     class Project extends Model {
         static associate(models) {
-            // Define associations here if needed
         }
     }
 
@@ -18,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
             validate: {
                 notEmpty: true,
-                len: [3, 255] // Ensure title is between 3 and 255 characters
+                len: [3, 255] 
             }
         },
         description: {
@@ -26,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false,
             validate: {
                 notEmpty: true,
-                len: [10, 5000] // Ensure description is between 10 and 5000 characters
+                len: [10, 5000] 
             }
         },
         mainImage: {

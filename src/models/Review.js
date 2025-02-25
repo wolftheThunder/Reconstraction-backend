@@ -1,6 +1,5 @@
-// models/Review.js
 const { Model, DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
+const sequelize = require('../config/db');
 
 class Review extends Model {}
 
@@ -8,7 +7,7 @@ Review.init({
     projectId: {
         type: DataTypes.INTEGER,
         references: {
-            model: 'Projects', // Name of the projects table
+            model: 'Projects',
             key: 'id',
         },
         allowNull: false,
@@ -28,6 +27,11 @@ Review.init({
     image: {
         type: DataTypes.STRING,
         allowNull: true,
+    },
+    isApproved: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
     }
 }, {
     sequelize,

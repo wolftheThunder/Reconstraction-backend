@@ -4,15 +4,15 @@ const cors = require("cors");
 const path = require('path');
 require("dotenv").config();
 
-// Import routes
 const contactMessageRoutes = require("./routes/contactMessageRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const projectRoutes = require("./routes/projectRoutes");
 const sequelize = require("./config/db");
+const reviewRoutes = require('./routes/ReviewRoutes');
+const unapprovedReviewRoutes = require('./routes/UnapprovedReviewRoutes');
 
 const app = express();
 
-// Configure CORS with more specific options
 app.use(cors({
     origin: process.env.FRONTEND_URL || "http://localhost:5173",
     methods: ["GET", "POST", "PUT", "DELETE"],
@@ -24,15 +24,14 @@ app.use(cors({
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Static file serving for uploads
 app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
 
-// API Routes
 app.use("/api", contactMessageRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/projects", projectRoutes);
+app.use("/api/projects", reviewRoutes);
+app.use("/api/unapproved-reviews", unapprovedReviewRoutes);
 
-// Global error handling middleware
 app.use((err, req, res, next) => {
     console.error('Error:', err.stack);
     res.status(err.status || 500).json({
@@ -40,25 +39,20 @@ app.use((err, req, res, next) => {
     });
 });
 
-// Handle 404 routes
 app.use((req, res) => {
     res.status(404).json({ error: 'Route not found' });
 });
 
 const PORT = process.env.PORT || 5656;
 
-// Database connection and server startup
 const startServer = async () => {
     try {
-        // Test database connection
         await sequelize.authenticate();
         console.log("Database connection established successfully.");
 
-        // Sync database models
         await sequelize.sync({ alter: true });
         console.log("Database synchronized");
 
-        // Start server
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
             console.log(`Upload path: ${path.join(__dirname, '../uploads')}`);

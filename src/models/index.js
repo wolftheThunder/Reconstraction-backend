@@ -11,11 +11,9 @@ const db = {};
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
 
-// Import models
 db.Admin = require("./Admin")(sequelize, DataTypes);
 db.Project = require("./Project")(sequelize, DataTypes);
 
-// Initialize associations
 Object.keys(db).forEach(modelName => {
     if (db[modelName] && db[modelName].associate) {
         db[modelName].associate(db);

@@ -1,7 +1,7 @@
-const { Admin } = require("../models"); // Import Admin model
-const bcrypt = require("bcryptjs"); // Import bcrypt
-const jwt = require("jsonwebtoken"); // Import JWT
-require("dotenv").config(); // Load environment variables
+const { Admin } = require("../models");
+const bcrypt = require("bcryptjs"); 
+const jwt = require("jsonwebtoken"); 
+require("dotenv").config(); 
 
 exports.adminLogin = async (req, res) => {
   const { email, password } = req.body;

@@ -5,11 +5,11 @@
        up: async (queryInterface, Sequelize) => {
            await queryInterface.addColumn('Projects', 'mainImage', {
                type: Sequelize.STRING,
-               allowNull: true, // Allow null if no main image is provided
+               allowNull: true, 
            });
            await queryInterface.addColumn('Projects', 'subImages', {
                type: Sequelize.JSON,
-               allowNull: true, // Allow null if no sub-images are provided
+               allowNull: true, 
            });
        },
        down: async (queryInterface, Sequelize) => {

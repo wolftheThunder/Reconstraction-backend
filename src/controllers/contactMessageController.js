@@ -7,7 +7,7 @@ require("dotenv").config();
 const createContactMessage = async (req, res) => {
   try {
     const { firstName, lastName, email, phone, message, agreed } = req.body;
-    const company = req.body.company || "Not provided"; // ✅ Ensure default value
+    const company = req.body.company || "Not provided"; 
 
     if (!firstName || !lastName || !email || !message || agreed === undefined) {
       return res.status(400).json({ error: "Missing required fields" });
@@ -35,7 +35,7 @@ const createContactMessage = async (req, res) => {
       from: `"Website Contact Form" <${process.env.ADMIN_EMAIL}>`,
       to: process.env.ADMIN_EMAIL,
       subject: "New Contact Message Received",
-      html: adminEmailTemplate(firstName, lastName, email, phone, message, company), // ✅ Fix order
+      html: adminEmailTemplate(firstName, lastName, email, phone, message, company),
     });
 
     await transporter.sendMail({
@@ -55,4 +55,26 @@ const createContactMessage = async (req, res) => {
   }
 };
 
-module.exports = { createContactMessage };
+const getAllContactMessages = async (req, res) => {
+  try {
+    const messages = await ContactMessage.findAll({
+      order: [['createdAt', 'DESC']], 
+    });
+
+    res.json({
+      success: true,
+      messages,
+    });
+  } catch (error) {
+    console.error('Error fetching contact messages:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch contact messages',
+    });
+  }
+};
+
+module.exports = {
+  createContactMessage,
+  getAllContactMessages,
+};
