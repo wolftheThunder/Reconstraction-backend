@@ -16,7 +16,7 @@ const handleMulterError = (err, req, res, next) => {
 };
 const uploadFields = upload.fields([
     { name: 'mainImage', maxCount: 1 },
-    { name: 'subImages', maxCount: 5 }
+    { name: 'subImages', maxCount: 10 }
 ]);
 
 const asyncHandler = fn => (req, res, next) => {

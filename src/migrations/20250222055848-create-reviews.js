@@ -1,4 +1,3 @@
-// migrations/xxxx-create-reviews.js
 'use strict';
 
 module.exports = {
@@ -16,14 +15,19 @@ module.exports = {
                     key: 'id',
                 },
                 allowNull: false,
+                onDelete: 'CASCADE', // ✅ Ensures reviews are deleted when a project is deleted
             },
             name: {
                 type: Sequelize.STRING,
                 allowNull: false,
             },
-            position: {
-                type: Sequelize.STRING,
+            rating: {  // ✅ Replaces 'position' with 'rating'
+                type: Sequelize.INTEGER,
                 allowNull: false,
+                validate: {
+                    min: 1,
+                    max: 5
+                }
             },
             quote: {
                 type: Sequelize.TEXT,
@@ -32,6 +36,11 @@ module.exports = {
             image: {
                 type: Sequelize.STRING,
                 allowNull: true,
+            },
+            isApproved: {  // ✅ Added isApproved field for admin moderation
+                type: Sequelize.BOOLEAN,
+                allowNull: false,
+                defaultValue: false,
             },
             createdAt: {
                 type: Sequelize.DATE,

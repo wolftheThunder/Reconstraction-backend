@@ -1,19 +1,29 @@
 const path = require('path');
-const Review = require('../models/Review'); 
+const db = require('../models');
+const { Review, Project } = db;
 
 exports.addReview = async (req, res) => {
     try {
         const { projectId } = req.params;
-        const { name, position, quote } = req.body;
-        const image = req.file ? path.join('uploads', req.file.filename) : null; 
+        const { name, quote, rating } = req.body;  // Changed to match frontend fields
+        const image = req.file ? path.join('uploads', req.file.filename) : null;
 
+        // Validate rating
+        if (!rating || rating < 1 || rating > 5) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Rating must be between 1 and 5" 
+            });
+        }
+
+        // Create review with projectId
         const newReview = await Review.create({
             projectId,
             name,
-            position,
             quote,
+            rating,  // Added rating field
             image,
-            isApproved: false 
+            isApproved: false
         });
 
         res.status(201).json({
@@ -35,8 +45,13 @@ exports.getReviews = async (req, res) => {
         const reviews = await Review.findAll({
             where: {
                 projectId,
-                isApproved: true 
-            }
+                isApproved: true
+            },
+            include: [{
+                model: Project,
+                as: 'project',
+                attributes: ['id', 'title']
+            }]
         });
 
         res.json({
@@ -48,53 +63,6 @@ exports.getReviews = async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to fetch reviews'
-        });
-    }
-};
-
-exports.getUnapprovedReviews = async (req, res) => {
-    try {
-        const reviews = await Review.findAll({
-            where: { isApproved: false } 
-        });
-
-        res.json({
-            success: true,
-            reviews
-        });
-    } catch (error) {
-        console.error('Error fetching unapproved reviews:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch unapproved reviews'
-        });
-    }
-};
-
-exports.approveReview = async (req, res) => {
-    try {
-        const { reviewId } = req.params;
-        const review = await Review.findByPk(reviewId);
-
-        if (!review) {
-            return res.status(404).json({
-                success: false,
-                message: 'Review not found'
-            });
-        }
-
-        review.isApproved = true;
-        await review.save();
-
-        res.json({
-            success: true,
-            message: 'Review approved successfully'
-        });
-    } catch (error) {
-        console.error('Error approving review:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to approve review'
         });
     }
 };

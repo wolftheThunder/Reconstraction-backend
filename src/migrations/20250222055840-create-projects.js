@@ -1,4 +1,3 @@
-// migrations/xxxx-create-projects.js
 'use strict';
 
 module.exports = {
@@ -17,9 +16,14 @@ module.exports = {
                 type: Sequelize.TEXT,
                 allowNull: false,
             },
-            images: {
+            mainImage: {  // ✅ Single main image
+                type: Sequelize.STRING,
+                allowNull: true,
+            },
+            subImages: {  // ✅ Multiple images in JSON format
                 type: Sequelize.JSON,
-                allowNull: false,
+                allowNull: true,
+                defaultValue: []
             },
             createdAt: {
                 type: Sequelize.DATE,

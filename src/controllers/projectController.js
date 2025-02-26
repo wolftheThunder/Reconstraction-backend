@@ -1,7 +1,9 @@
 const db = require('../models');
+const { Project, Review } = db;
 const path = require('path');
 const fs = require('fs').promises;
 
+// ✅ Centralized Error Handling Function
 const handleError = (error, customMessage) => {
     console.error(`${customMessage}:`, {
         message: error.message,
@@ -18,6 +20,7 @@ const handleError = (error, customMessage) => {
     };
 };
 
+// ✅ Utility Function to Delete a File
 const deleteFile = async (filePath) => {
     try {
         if (!filePath) return;
@@ -28,349 +31,201 @@ const deleteFile = async (filePath) => {
     }
 };
 
-
+// ✅ Get All Projects
 exports.getAllProjects = async (req, res) => {
     try {
-        const projects = await db.Project.findAll({
-            order: [['createdAt', 'DESC']]
-        });
-
-        const transformedProjects = projects.map(project => ({
-            id: project.id,
-            title: project.title,
-            description: project.description,
-            mainImage: project.mainImage ? `${project.mainImage}` : null,
-            subImages: Array.isArray(project.subImages) ? project.subImages.map(image => `${image}`) : [],
-            createdAt: project.createdAt,
-            updatedAt: project.updatedAt
-        }));
+        const projects = await Project.findAll({ order: [['createdAt', 'DESC']] });
 
         res.json({ 
             success: true, 
             count: projects.length,
-            projects: transformedProjects 
+            projects
         });
     } catch (error) {
-        console.error('Error fetching projects:', error); // Log the error for debugging
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch projects'
-        });
+        res.status(500).json(handleError(error, 'Failed to fetch projects'));
     }
 };
+
+// ✅ Create a New Project
 exports.createProject = async (req, res) => {
     try {
-        console.log('Request Body:', req.body);
-        console.log('Request Files:', req.files);
-
         const { title, description } = req.body;
 
-        // Validate input data
-        if (!title || title.trim().length < 5) {
-            return res.status(400).json({
-                success: false,
-                message: 'Title must be at least 3 characters long'
-            });
+        // ✅ Validate Input
+        if (!title || title.length < 3) {
+            return res.status(400).json({ success: false, message: 'Title must be at least 3 characters long' });
         }
-        if (!description || description.trim().length < 10) {
-            return res.status(400).json({
-                success: false,
-                message: 'Description must be at least 10 characters long'
-            });
+        if (!description || description.length < 10) {
+            return res.status(400).json({ success: false, message: 'Description must be at least 10 characters long' });
         }
 
-        // Handle main image
-        const mainImage = req.files?.mainImage?.[0]?.filename;
-
-        // Handle sub images
+        // ✅ Handle Images
+        const mainImage = req.files?.mainImage?.[0]?.filename ? `uploads/${req.files.mainImage[0].filename}` : null;
         const subImages = req.files?.subImages?.map(file => `uploads/${file.filename}`) || [];
 
-        const project = await db.Project.create({
-            title,
-            description,
-            mainImage: mainImage ? `uploads/${mainImage}` : null,
-            subImages: subImages
-        });
+        // ✅ Create Project
+        const project = await Project.create({ title, description, mainImage, subImages });
 
-        res.status(201).json({
-            success: true,
-            project
-        });
+        res.status(201).json({ success: true, project });
+
     } catch (error) {
         console.error('Error creating project:', error);
 
-        // Clean up uploaded files if there's an error
-        if (req.files?.mainImage) {
-            await deleteFile(path.join('uploads', req.files.mainImage[0].filename));
-        }
+        // ✅ Cleanup Uploaded Files if Error Occurs
+        if (req.files?.mainImage) await deleteFile(`uploads/${req.files.mainImage[0].filename}`);
         if (req.files?.subImages) {
             for (const file of req.files.subImages) {
-                await deleteFile(path.join('uploads', file.filename));
+                await deleteFile(`uploads/${file.filename}`);
             }
         }
 
-        const errorResponse = handleError(error, 'Failed to create project');
-        res.status(500).json(errorResponse);
+        res.status(500).json(handleError(error, 'Failed to create project'));
     }
 };
+
+// ✅ Update a Project
 exports.updateProject = async (req, res) => {
     try {
         const { id } = req.params;
         const { title, description } = req.body;
 
-        const project = await db.Project.findByPk(id);
-        if (!project) {
-            return res.status(404).json({ 
-                success: false, 
-                message: 'Project not found' 
-            });
-        }
+        const project = await Project.findByPk(id);
+        if (!project) return res.status(404).json({ success: false, message: 'Project not found' });
 
         const updateData = { title, description };
 
+        // ✅ Handle Main Image Update
         if (req.files?.mainImage) {
-            if (project.mainImage) {
-                await deleteFile(project.mainImage);
-            }
+            if (project.mainImage) await deleteFile(project.mainImage);
             updateData.mainImage = `uploads/${req.files.mainImage[0].filename}`;
         }
 
+        // ✅ Merge New and Existing Sub Images
         if (req.files?.subImages) {
-            for (const image of project.subImages || []) {
-                await deleteFile(image);
-            }
-            updateData.subImages = req.files.subImages
-                .map(file => `uploads/${file.filename}`);
+            const newSubImages = req.files.subImages.map(file => `uploads/${file.filename}`);
+            updateData.subImages = project.subImages ? [...project.subImages, ...newSubImages] : newSubImages;
         }
 
         await project.update(updateData);
-        res.json({
-            success: true,
-            project
-        });
+        res.json({ success: true, project });
+
     } catch (error) {
-        const errorResponse = handleError(error, 'Failed to update project');
-        res.status(500).json(errorResponse);
+        res.status(500).json(handleError(error, 'Failed to update project'));
     }
 };
 
+// ✅ Delete a Project
 exports.deleteProject = async (req, res) => {
     try {
         const { id } = req.params;
-        const project = await db.Project.findByPk(id);
 
-        if (!project) {
-            return res.status(404).json({ 
-                success: false, 
-                message: 'Project not found' 
-            });
-        }
+        const project = await Project.findByPk(id, { include: [{ model: Review, as: 'reviews' }] });
+        if (!project) return res.status(404).json({ success: false, message: 'Project not found' });
 
-        if (project.mainImage) {
-            await deleteFile(project.mainImage);
-        }
+        await Review.destroy({ where: { projectId: id } });
 
-        for (const image of project.subImages || []) {
-            await deleteFile(image);
+        // ✅ Delete Files
+        if (project.mainImage) await deleteFile(project.mainImage);
+        if (project.subImages) {
+            for (const image of project.subImages) {
+                await deleteFile(image);
+            }
         }
 
         await project.destroy();
-        res.json({
-            success: true,
-            message: 'Project deleted successfully'
-        });
+        res.json({ success: true, message: 'Project deleted successfully' });
+
     } catch (error) {
-        const errorResponse = handleError(error, 'Failed to delete project');
-        res.status(500).json(errorResponse);
+        res.status(500).json(handleError(error, 'Failed to delete project'));
     }
 };
 
+// ✅ Delete a Specific Sub-Image
 exports.deleteSubImage = async (req, res) => {
     try {
         const { id } = req.params;
         const { imageUrl } = req.body;
 
-        const project = await db.Project.findByPk(id);
-        if (!project) {
-            return res.status(404).json({
-                success: false,
-                message: 'Project not found'
-            });
-        }
+        const project = await Project.findByPk(id);
+        if (!project) return res.status(404).json({ success: false, message: 'Project not found' });
 
-        const subImages = project.subImages.filter(img => img !== imageUrl);
+        const updatedSubImages = project.subImages.filter(img => img !== imageUrl);
         await deleteFile(imageUrl);
-        await project.update({ subImages });
+        await project.update({ subImages: updatedSubImages });
 
-        res.json({
-            success: true,
-            message: 'Sub image deleted successfully'
-        });
+        res.json({ success: true, message: 'Sub image deleted successfully' });
+
     } catch (error) {
-        const errorResponse = handleError(error, 'Failed to delete sub image');
-        res.status(500).json(errorResponse);
+        res.status(500).json(handleError(error, 'Failed to delete sub image'));
     }
 };
 
-exports.getProjectStats = async (req, res) => {
-    try {
-        const totalCount = await db.Project.count();
-        const recentProjects = await db.Project.findAll({
-            order: [['createdAt', 'DESC']],
-            limit: 5,
-            attributes: ['id', 'title', 'createdAt']
-        });
-
-        res.json({
-            success: true,
-            stats: {
-                totalProjects: totalCount,
-                recentProjects
-            }
-        });
-    } catch (error) {
-        const errorResponse = handleError(error, 'Failed to fetch project stats');
-        res.status(500).json(errorResponse);
-    }
-};
-
-
-exports.getProjectById = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const project = await db.Project.findByPk(id);
-
-        if (!project) {
-            return res.status(404).json({
-                success: false,
-                message: 'Project not found'
-            });
-        }
-
-        res.json({
-            success: true,
-            project
-        });
-    } catch (error) {
-        const errorResponse = handleError(error, 'Failed to fetch project');
-        res.status(500).json(errorResponse);
-    }
-};
+// ✅ Delete Main Image
 exports.deleteMainImage = async (req, res) => {
     try {
         const { id } = req.params;
 
-        const project = await db.Project.findByPk(id);
-        if (!project) {
-            return res.status(404).json({
-                success: false,
-                message: 'Project not found'
-            });
-        }
+        const project = await Project.findByPk(id);
+        if (!project) return res.status(404).json({ success: false, message: 'Project not found' });
 
-        if (!project.mainImage) {
-            return res.status(400).json({
-                success: false,
-                message: 'No main image to delete'
-            });
-        }
+        if (!project.mainImage) return res.status(400).json({ success: false, message: 'No main image to delete' });
 
         await deleteFile(project.mainImage);
-
         await project.update({ mainImage: null });
 
-        res.json({
-            success: true,
-            message: 'Main image deleted successfully'
-        });
+        res.json({ success: true, message: 'Main image deleted successfully' });
+
     } catch (error) {
-        console.error('Error deleting main image:', error);
-        const errorResponse = handleError(error, 'Failed to delete main image');
-        res.status(500).json(errorResponse);
+        res.status(500).json(handleError(error, 'Failed to delete main image'));
     }
 };
 
+// ✅ Get Project By ID
+exports.getProjectById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const project = await Project.findByPk(id);
 
+        if (!project) return res.status(404).json({ success: false, message: 'Project not found' });
+
+        res.json({ success: true, project });
+
+    } catch (error) {
+        res.status(500).json(handleError(error, 'Failed to fetch project'));
+    }
+};
+
+// ✅ Get Latest Projects
 exports.getLatestProjects = async (req, res) => {
     try {
-        const latestProjects = await db.Project.findAll({
+        const latestProjects = await Project.findAll({
             order: [['createdAt', 'DESC']],
             limit: 3,
             attributes: ['id', 'title', 'mainImage', 'createdAt']
         });
 
         if (latestProjects.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'No projects found'
-            });
+            return res.status(404).json({ success: false, message: 'No projects found' });
         }
 
-        res.json({
-            success: true,
-            projects: latestProjects
-        });
+        res.json({ success: true, projects: latestProjects });
+
     } catch (error) {
-        console.error('Error fetching latest projects:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch latest projects'
-        });
+        res.status(500).json(handleError(error, 'Failed to fetch latest projects'));
     }
 };
+
+// ✅ Get Project By Slug
 exports.getProjectBySlug = async (req, res) => {
     try {
         const { slug } = req.params;
-        const project = await db.Project.findOne({
-            where: { slug: slug },
-            attributes: ['id', 'title', 'description', 'mainImage', 'subImages', 'createdAt']
-        });
+        const project = await Project.findOne({ where: { slug } });
 
-        if (!project) {
-            return res.status(404).json({
-                success: false,
-                message: 'Project not found'
-            });
-        }
+        if (!project) return res.status(404).json({ success: false, message: 'Project not found' });
 
-        res.json({
-            success: true,
-            project
-        });
+        res.json({ success: true, project });
+
     } catch (error) {
-        console.error('Error fetching project by slug:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch project'
-        });
-    }
-};
-
-
-
-exports.getProjectById = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const project = await db.Project.findByPk(id, {
-            attributes: ['id', 'title', 'description', 'mainImage', 'subImages', 'createdAt']
-        });
-
-        if (!project) {
-            return res.status(404).json({
-                success: false,
-                message: 'Project not found'
-            });
-        }
-
-        res.json({
-            success: true,
-            project
-        });
-    } catch (error) {
-        console.error('Error fetching project by ID:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to fetch project'
-        });
+        res.status(500).json(handleError(error, 'Failed to fetch project'));
     }
 };
