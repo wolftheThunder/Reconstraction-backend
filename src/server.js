@@ -10,6 +10,7 @@ const projectRoutes = require("./routes/projectRoutes");
 const sequelize = require("./config/db");
 const reviewRoutes = require('./routes/ReviewRoutes');
 const unapprovedReviewRoutes = require('./routes/unapprovedReviewRoutes');
+const servicesRoutes = require("./routes/serviceRoutes");
 
 const app = express();
 
@@ -31,6 +32,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/projects", reviewRoutes);
 app.use("/api/unapproved-reviews", unapprovedReviewRoutes);
+app.use("/api/services", servicesRoutes);
 
 app.use((err, req, res, next) => {
     console.error('Error:', err.stack);

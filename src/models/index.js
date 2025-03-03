@@ -1,4 +1,4 @@
-const { Sequelize } = require('sequelize');
+const { Sequelize, DataTypes } = require('sequelize');
 const config = require('../config/config.json')['development'];
 
 const sequelize = new Sequelize(
@@ -14,15 +14,16 @@ const sequelize = new Sequelize(
 const db = {};
 
 // Import and instantiate models
-const Admin = require('./Admin')(sequelize);
-const Project = require('./Project')(sequelize);
-const Review = require('./Review')(sequelize);
-// Add models to db object
+const Admin = require('./Admin')(sequelize, DataTypes);
+const Project = require('./Project')(sequelize, DataTypes);
+const Review = require('./Review')(sequelize, DataTypes);
+const Service = require("./Service")(sequelize, DataTypes);
+
 db.Admin = Admin;
 db.Project = Project;
 db.Review = Review;
+db.Service = Service;
 
-// Define associations if any
 Object.keys(db).forEach((modelName) => {
   if (db[modelName].associate) {
     db[modelName].associate(db);

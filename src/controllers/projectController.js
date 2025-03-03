@@ -51,7 +51,6 @@ exports.createProject = async (req, res) => {
     try {
         const { title, description } = req.body;
 
-        // ✅ Validate Input
         if (!title || title.length < 3) {
             return res.status(400).json({ success: false, message: 'Title must be at least 3 characters long' });
         }
@@ -59,11 +58,9 @@ exports.createProject = async (req, res) => {
             return res.status(400).json({ success: false, message: 'Description must be at least 10 characters long' });
         }
 
-        // ✅ Handle Images
         const mainImage = req.files?.mainImage?.[0]?.filename ? `uploads/${req.files.mainImage[0].filename}` : null;
         const subImages = req.files?.subImages?.map(file => `uploads/${file.filename}`) || [];
 
-        // ✅ Create Project
         const project = await Project.create({ title, description, mainImage, subImages });
 
         res.status(201).json({ success: true, project });
@@ -71,7 +68,6 @@ exports.createProject = async (req, res) => {
     } catch (error) {
         console.error('Error creating project:', error);
 
-        // ✅ Cleanup Uploaded Files if Error Occurs
         if (req.files?.mainImage) await deleteFile(`uploads/${req.files.mainImage[0].filename}`);
         if (req.files?.subImages) {
             for (const file of req.files.subImages) {
@@ -100,10 +96,29 @@ exports.updateProject = async (req, res) => {
             updateData.mainImage = `uploads/${req.files.mainImage[0].filename}`;
         }
 
-        // ✅ Merge New and Existing Sub Images
+        // ✅ Handle Sub Images - Keep existing ones and add new ones
         if (req.files?.subImages) {
             const newSubImages = req.files.subImages.map(file => `uploads/${file.filename}`);
-            updateData.subImages = project.subImages ? [...project.subImages, ...newSubImages] : newSubImages;
+            
+            // Ensure existing subImages is an array
+            let existingSubImages = [];
+            if (project.subImages) {
+                if (Array.isArray(project.subImages)) {
+                    existingSubImages = project.subImages;
+                } else if (typeof project.subImages === 'string') {
+                    try {
+                        existingSubImages = JSON.parse(project.subImages);
+                        if (!Array.isArray(existingSubImages)) {
+                            existingSubImages = [];
+                        }
+                    } catch (e) {
+                        existingSubImages = [];
+                    }
+                }
+            }
+            
+            // Combine existing and new subImages
+            updateData.subImages = [...existingSubImages, ...newSubImages];
         }
 
         await project.update(updateData);
@@ -113,7 +128,6 @@ exports.updateProject = async (req, res) => {
         res.status(500).json(handleError(error, 'Failed to update project'));
     }
 };
-
 // ✅ Delete a Project
 exports.deleteProject = async (req, res) => {
     try {
@@ -149,7 +163,24 @@ exports.deleteSubImage = async (req, res) => {
         const project = await Project.findByPk(id);
         if (!project) return res.status(404).json({ success: false, message: 'Project not found' });
 
-        const updatedSubImages = project.subImages.filter(img => img !== imageUrl);
+        // Ensure subImages is an array
+        let subImages = [];
+        if (project.subImages) {
+            if (Array.isArray(project.subImages)) {
+                subImages = project.subImages;
+            } else if (typeof project.subImages === 'string') {
+                try {
+                    subImages = JSON.parse(project.subImages);
+                    if (!Array.isArray(subImages)) {
+                        subImages = [];
+                    }
+                } catch (e) {
+                    subImages = [];
+                }
+            }
+        }
+
+        const updatedSubImages = subImages.filter(img => img !== imageUrl);
         await deleteFile(imageUrl);
         await project.update({ subImages: updatedSubImages });
 
