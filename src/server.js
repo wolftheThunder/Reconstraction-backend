@@ -9,7 +9,7 @@ const adminRoutes = require("./routes/adminRoutes");
 const projectRoutes = require("./routes/projectRoutes");
 const sequelize = require("./config/db");
 const reviewRoutes = require('./routes/ReviewRoutes');
-const unapprovedReviewRoutes = require('./routes/unapprovedReviewRoutes');
+const unapprovedReviewRoutes = require('./routes/unapproved');
 const servicesRoutes = require("./routes/serviceRoutes");
 
 const app = express();
