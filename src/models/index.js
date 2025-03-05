@@ -14,7 +14,7 @@ const sequelize = new Sequelize(
 const db = {};
 
 // Import and instantiate models
-const Admin = require('./Admin')(sequelize, DataTypes);
+const Admin = require('./admin')(sequelize, DataTypes);
 const Project = require('./Project')(sequelize, DataTypes);
 const Review = require('./Review')(sequelize, DataTypes);
 const Service = require("./Service")(sequelize, DataTypes);
