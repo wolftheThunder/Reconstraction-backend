@@ -1,7 +1,7 @@
 {
     "development": {
       "username": "root",
-      "password": "PakistanNip@t@11",
+      "password": "your_password",
       "database": "store_api",
       "host": "127.0.0.1",
       "dialect": "mysql"
