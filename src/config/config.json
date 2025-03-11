@@ -1,8 +1,8 @@
 {
     "development": {
-      "username": "root",
-      "password": "",
-      "database": "new_api",
+      "username": "u207101388_shabbiralykhan",
+      "password": "Nip@t@!11",
+      "database": "u207101388_JN",
       "host": "127.0.0.1",
       "dialect": "mysql"
     }

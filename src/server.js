@@ -15,9 +15,7 @@ const servicesRoutes = require("./routes/serviceRoutes");
 const app = express();
 
 app.use(cors({
-    origin: process.env.FRONTEND_URL || "*",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    origin: 'https://jandrnw.com',
     credentials: true
 }));
 
@@ -45,7 +43,7 @@ app.use((req, res) => {
     res.status(404).json({ error: 'Route not found' });
 });
 
-const PORT = process.env.PORT || 5656;
+const PORT = process.env.PORT || 3000;
 
 const startServer = async () => {
     try {
@@ -55,13 +53,13 @@ const startServer = async () => {
         await sequelize.sync({ alter: true });
         console.log("Database synchronized");
 
-        app.listen(PORT, () => {
+app.listen(3000, '0.0.0.0', () => {
             console.log(`Server running on port ${PORT}`);
             console.log(`Upload path: ${path.join(__dirname, '../uploads')}`);
         });
     } catch (error) {
         console.error("Server startup failed:");
-        console.error("Error name:", error.name);
+        console.error("ErPORT ror name:", error.name);
         console.error("Error message:", error.message);
         
         if (error.name === 'SequelizeConnectionError') {

@@ -4,33 +4,48 @@ module.exports = (firstName, lastName, email, phone, message, company = "Not pro
       font-family: 'Arial', sans-serif;
       max-width: 600px;
       margin: auto;
-      background: #1a1a2e;
-      color: #fff;
-      border-radius: 12px;
+      background: #ffffff;
+      color: #333;
+      border-radius: 10px;
       overflow: hidden;
-      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+      border: 1px solid #ddd;
+      box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.08);
     ">
-      <div style="background: #0f3460; padding: 20px; text-align: center;">
-        <h2 style="margin: 0; color: #fff;">📩 New Contact Message</h2>
+      <!-- Header -->
+      <div style="background: #004080; padding: 20px; text-align: center;">
+        <h2 style="margin: 0; color: #fff; font-size: 20px;">📩 New Contact Message</h2>
       </div>
-      <div style="padding: 20px;">
-        <p><strong style="color: #e94560;">👤 Name:</strong> ${firstName} ${lastName}</p>
-        <p><strong style="color: #e94560;">🏢 Company:</strong> ${company}</p>
-        <p><strong style="color: #e94560;">📧 Email:</strong> <a href="mailto:${email}" style="color: #00adb5; text-decoration: none;">${email}</a></p>
-        <p><strong style="color: #e94560;">📞 Phone:</strong> ${phone || "Not provided"}</p>
+
+      <!-- Main Content -->
+      <div style="padding: 25px;">
+        <p><strong style="color: #004080;">👤 Name:</strong> ${firstName} ${lastName}</p>
+        <p><strong style="color: #004080;">🏢 Company:</strong> ${company || "Jandrnw Construction"}</p>
+        <p><strong style="color: #004080;">📧 Email:</strong> 
+          <a href="mailto:${email}" style="color: #0073e6; text-decoration: none; font-weight: bold;">${email}</a>
+        </p>
+        <p><strong style="color: #004080;">📞 Phone:</strong> ${phone || "Not provided"}</p>
         
-        <p style="margin-top: 20px;"><strong style="color: #e94560;">💬 Message:</strong></p>
-        <blockquote style="
-          background: #16213e;
+        <p style="margin-top: 20px;"><strong style="color: #004080;">💬 Message:</strong></p>
+        <div style="
+          background: #f9f9f9;
           padding: 15px;
-          border-left: 5px solid #e94560;
+          border-left: 4px solid #0073e6;
           font-style: italic;
+          color: #555;
         ">
           ${message}
-        </blockquote>
+        </div>
       </div>
-      <div style="background: #0f3460; padding: 10px; text-align: center; font-size: 14px;">
-        <p style="margin: 0;">🔹 This message was sent from your website's contact form.</p>
+
+      <!-- Footer -->
+      <div style="
+        background: #f1f1f1;
+        padding: 15px;
+        text-align: center;
+        font-size: 14px;
+        color: #666;
+      ">
+        <p style="margin: 0;">📍 This message was sent from the Jandrnw Construction website contact form.</p>
       </div>
     </div>
   `;
