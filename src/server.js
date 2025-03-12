@@ -18,9 +18,10 @@ const app = express();
 
 // Load SSL Certificates
 const options = {
-    key: fs.readFileSync('./ssl/key.pem'),
-    cert: fs.readFileSync('./ssl/cert.pem')
+    key: fs.readFileSync(path.resolve(__dirname, 'ssl/key.pem')),
+    cert: fs.readFileSync(path.resolve(__dirname, 'ssl/cert.pem'))
 };
+
 
 // Enable CORS
 app.use(cors({
