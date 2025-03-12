@@ -15,7 +15,7 @@ const servicesRoutes = require("./routes/serviceRoutes");
 const app = express();
 
 app.use(cors({
-    origin: '*',
+    origin: 'https://jandrnw.com',
     credentials: true
 }));
 
