@@ -18,8 +18,8 @@ const app = express();
 
 // Load SSL Certificates
 const options = {
-    key: fs.readFileSync(path.resolve(__dirname, 'ssl/key.pem')),
-    cert: fs.readFileSync(path.resolve(__dirname, 'ssl/cert.pem'))
+    key: fs.readFileSync(path.resolve(__dirname, '../ssl/key.pem')),
+    cert: fs.readFileSync(path.resolve(__dirname, '../ssl/cert.pem'))
 };
 
 
